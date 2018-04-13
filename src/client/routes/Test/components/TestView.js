@@ -124,47 +124,6 @@ class TestView extends React.Component {
   }
 
   /////////////////////////////////////////////////////////
-  // Creates Raycaster object from the pointer
-  //
-  /////////////////////////////////////////////////////////
-  pointerToRaycaster (domElement, camera, pointer) {
-
-    const pointerVector = new THREE.Vector3()
-    const pointerDir = new THREE.Vector3()
-    const ray = new THREE.Raycaster()
-
-    const rect = domElement.getBoundingClientRect()
-
-    const x = ((pointer.clientX - rect.left) / rect.width) * 2 - 1
-    const y = -((pointer.clientY - rect.top) / rect.height) * 2 + 1
-
-    if (camera.isPerspective) {
-
-      pointerVector.set(x, y, 0.5)
-
-      pointerVector.unproject(camera)
-
-      ray.set(camera.position,
-        pointerVector.sub(
-          camera.position).normalize())
-
-    } else {
-
-      pointerVector.set(x, y, -1)
-
-      pointerVector.unproject(camera)
-
-      pointerDir.set(0, 0, -1)
-
-      ray.set(pointerVector,
-        pointerDir.transformDirection(
-          camera.matrixWorld))
-    }
-
-    return ray
-  }
-
-  /////////////////////////////////////////////////////////
   //
   //
   /////////////////////////////////////////////////////////
@@ -216,38 +175,11 @@ class TestView extends React.Component {
           size: 1
         })
 
-        this.eventTool = new EventTool(viewer)
-
-        this.eventTool.activate()
-
-        this.eventTool.on ('singleclick', (event) => {
-
-          const pointer = event.pointers
-            ? event.pointers[0]
-            : event
-
-          const rayCaster = this.pointerToRaycaster(
-            this.viewer.impl.canvas,
-            this.viewer.impl.camera,
-            pointer)
-
-          const intersectResults = rayCaster.intersectObjects(
-            [textMesh], true)
-
-          console.log(intersectResults)
-
-          if (intersectResults.length) {
-
-            const mesh = intersectResults[0].object
-
-            console.log(mesh)
-          }
+        viewer.addEventListener(Autodesk.Viewing.AGGREGATE_SELECTION_CHANGED_EVENT, (e) => {
+          this.viewer.impl.scene.remove(textMesh)
+          this.viewer.impl.sceneUpdated(true)
         })
       })
-    })
-
-    viewer.addEventListener(Autodesk.Viewing.AGGREGATE_SELECTION_CHANGED_EVENT, (e) => {
-
     })
 
     viewer.loadModel(path)
